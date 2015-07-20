@@ -1,0 +1,96 @@
+#!/usr/bin/env python 
+import urllib2
+from BeautifulSoup import BeautifulSoup
+from subprocess import call
+import pystache as pst
+import sys, getopt, os, shutil
+from mgmic_description import qc_desc,s16_desc,assemble_desc,fgs_desc
+
+def data_collect(argv):
+    mgmic_base_out="/data/static/mgmic_tasks/%s/%s"
+    base_url = "http://mgmic.oscer.ou.edu/mgmic_tasks/%s/"
+    report_url = "http://mgmic.oscer.ou.edu/mgmic_tasks/%s/%s"
+    url_before_template="http://mgmic.oscer.ou.edu/mgmic_tasks/%s/%s_fastqc.html"
+    url_after_template="http://mgmic.oscer.ou.edu/mgmic_tasks/%s/%s.trimmed.paired.fq.gz_fastqc.html"
+    forward_filename =''
+    reverse_filename =''
+    task_id=''
+    try:
+	opts, args = getopt.getopt(argv,"hf:r:t:")
+    except getopt.GetoptError:
+	print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id>'
+    for opt, arg in opts:
+        if opt == '-h':
+            print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id>'
+            sys.exit()
+        elif opt in ("-f",):
+	    forward_filename =arg.split('/')[-1]
+        elif opt in ("-r",):
+            reverse_filename = arg.split('/')[-1]
+        elif opt in ("-t",):
+            task_id=arg
+    base_url = base_url % (task_id)
+    logfile = open(mgmic_base_out % (task_id,'report.txt'),'w')
+    logfile.write( "%s\n%s\n%s\n" % (forward_filename,reverse_filename,task_id))
+    forg= url_before_template % (task_id,forward_filename)
+    rorg = url_before_template % (task_id,reverse_filename)
+    logfile.write("%s\n%s\n" % (forg,rorg))
+    fpage = BeautifulSoup(urllib2.urlopen(forg))
+    rpage = BeautifulSoup(urllib2.urlopen(rorg))
+    qcfpage = BeautifulSoup(urllib2.urlopen(url_after_template % (task_id,forward_filename)))
+    qcrpage = BeautifulSoup(urllib2.urlopen( url_after_template % (task_id,reverse_filename)))
+    temp=[]
+    temp_src=[]
+    pages =[fpage,rpage,qcfpage,qcrpage]
+    for page in pages:
+    	temp.append(page.findAll('img')[15])
+	temp.append(page.findAll('img')[21])
+        temp_src.append(page.findAll('img')[15]['src'])
+        temp_src.append(page.findAll('img')[21]['src'])
+    with open( mgmic_base_out % (task_id,'/assemble_ray/stats.txt'),'r') as f:
+	assemble_statistics= f.read()
+    gene_dir = mgmic_base_out % (task_id,'/functional_gene')
+    gene_search = [ name for name in os.listdir(gene_dir) if os.path.isdir(os.path.join(gene_dir, name)) ]
+    
+    template= open('/usr/src/app/templates/ind_gene.tmpl','r').read()
+    gene_markdown=''
+    idx=0
+    for name in gene_search:
+	cur_image = os.path.join(gene_dir,name,"%s%s" % (name,".udb.bargraph.png")) 
+	if os.path.isfile(cur_image):
+	    img_url = cur_image.replace('/data/static','http://mgmic.oscer.ou.edu')
+	    temp = pst.render(template,{'name':name,'alt_text':name,'url':img_url})
+	    if idx % 2 == 0 and idx !=0:
+		gene_markdown = gene_markdown + temp + "  \n"
+	    else:
+	    	gene_markdown = gene_markdown + temp
+	    idx+=1
+	
+    assemble_statistics = open( mgmic_base_out % (task_id,'/assemble_ray/stats.txt'),'r').read()
+    data ={'forward_scr1':temp_src[0],"forward_scr2":temp_src[1],"qc_forward_scr1":temp_src[4],"qc_foward_scr2":temp_src[5],
+            'reverse_scr1':temp_src[2],"reverse_scr2":temp_src[3],"qc_reverse_scr1":temp_src[6],"qc_reverse_scr2":temp_src[7],
+            'qc_desc':qc_desc,'s16_desc':s16_desc,'assemble_desc':assemble_desc,'fgs_desc':fgs_desc,
+            's16_l1':"%s%s" % (base_url, '16s_classification/community_pie_chart_L1.png'),
+            's16_l3':"%s%s" % (base_url, '16s_classification/community_pie_chart_L3.png'),
+	    'qiime-url':"%s%s" % (base_url,'16s_classification/temp/mg_taxplots/taxa_summary_plots/pie_charts.html'),
+	    'ssu_hits': "%s%s" % (base_url,'16s_classification/ssu_hits_corrected.fasta'),
+	    'assemble_fasta': "%s%s" % (base_url,'assemble_ray/Contigs.fasta'),
+	    'assemble_statistics': assemble_statistics,
+	    'gene_markdown':gene_markdown
+ 	}
+    template= open('/usr/src/app/templates/report.tmpl','r').read()
+    
+    fout1= open(mgmic_base_out % (task_id,'report.md'),'w')
+    fout1_data = pst.render(template,data)
+    fout1.write(fout1_data)
+    fout1.close()
+    shutil.copyfile('/usr/src/app/bin/buttondown.css',mgmic_base_out % (task_id,'buttondown.css'))
+    call(["pandoc", mgmic_base_out % (task_id,'report.md'),"-s", "-c",'buttondown.css' , "-o", mgmic_base_out % (task_id,'report.html')])
+    print report_url % (task_id,'report.html')
+    #fout.close()
+    #print fout1_data
+
+if __name__ == '__main__':
+    # your code
+    data_collect(sys.argv[1:])
+
