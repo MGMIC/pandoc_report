@@ -3,7 +3,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 from subprocess import call
 import pystache as pst
-import sys, getopt, os, shutil
+import sys, getopt, os, glob,shutil
 from mgmic_description import qc_desc,s16_desc,assemble_desc,fgs_desc
 
 def data_collect(argv):
@@ -24,21 +24,50 @@ def data_collect(argv):
             print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id>'
             sys.exit()
         elif opt in ("-f",):
-	    forward_filename =arg.split('/')[-1]
+	    filename, file_extension = os.path.splitext(arg)
+	    if "gz" in file_extension:
+		forward_filename= filename.replace(".gz","").split('/')[-1]
+	    else: 
+	    	forward_filename =arg.split('/')[-1]
         elif opt in ("-r",):
-            reverse_filename = arg.split('/')[-1]
+ 	    filename, file_extension = os.path.splitext(arg)
+	    if "gz" in file_extension:
+		reverse_filename = filename.replace(".gz","").split('/')[-1]
+	    else:
+		reverse_filename = arg.split('/')[-1]
         elif opt in ("-t",):
             task_id=arg
     base_url = base_url % (task_id)
     logfile = open(mgmic_base_out % (task_id,'report.txt'),'w')
     logfile.write( "%s\n%s\n%s\n" % (forward_filename,reverse_filename,task_id))
-    forg= url_before_template % (task_id,forward_filename)
-    rorg = url_before_template % (task_id,reverse_filename)
+    fwd=[]
+    rev = []
+    for file in glob.glob(mgmic_base_out % (task_id,"*.html")):
+	if os.path.splitext(forward_filename)[0] in file:
+	    fwd.append((file,len(file)))
+	if os.path.splitext(reverse_filename)[0] in file:
+	    rev.append((file,len(file)))
+    if fwd[0][1] > fwd[1][1]:
+	forg = fwd[1][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+	fqc_url = fwd[0][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+    else:
+	forg = fwd[0][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+        fqc_url = fwd[1][0].replace("/data/static","http://mgmic.oscer.ou.edu")	
+    if rev[0][1] > rev[1][1]:
+        rorg = rev[1][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+        rqc_url = rev[0][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+    else:
+        rorg = rev[0][0].replace("/data/static","http://mgmic.oscer.ou.edu")
+        rqc_url = rev[1][0].replace("/data/static","http://mgmic.oscer.ou.edu")	
+    #forg= url_before_template % (task_id,forward_filename)
+    #rorg = url_before_template % (task_id,reverse_filename)
     logfile.write("%s\n%s\n" % (forg,rorg))
     fpage = BeautifulSoup(urllib2.urlopen(forg))
     rpage = BeautifulSoup(urllib2.urlopen(rorg))
-    qcfpage = BeautifulSoup(urllib2.urlopen(url_after_template % (task_id,forward_filename)))
-    qcrpage = BeautifulSoup(urllib2.urlopen( url_after_template % (task_id,reverse_filename)))
+    qcfpage = BeautifulSoup(urllib2.urlopen(fqc_url))
+    qcrpage = BeautifulSoup(urllib2.urlopen(rqc_url))
+    #qcfpage = BeautifulSoup(urllib2.urlopen(url_after_template % (task_id,forward_filename)))
+    #qcrpage = BeautifulSoup(urllib2.urlopen( url_after_template % (task_id,reverse_filename)))
     temp=[]
     temp_src=[]
     pages =[fpage,rpage,qcfpage,qcrpage]
