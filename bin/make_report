@@ -3,7 +3,7 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 from subprocess import call
 import pystache as pst
-import sys, getopt, os, glob,shutil
+import sys, getopt, os, glob,shutil,ast
 from mgmic_description import qc_desc,s16_desc,assemble_desc,fgs_desc
 
 def data_collect(argv):
@@ -15,13 +15,14 @@ def data_collect(argv):
     forward_filename =''
     reverse_filename =''
     task_id=''
+    workflow = {"qc":"on","s16":"on","assemble":"on","func_gene":"on"}
     try:
 	opts, args = getopt.getopt(argv,"hf:r:t:")
     except getopt.GetoptError:
-	print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id>'
+	print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id> -w <workflow>'
     for opt, arg in opts:
         if opt == '-h':
-            print 'make_report.py -f <foward_read> -r <reverse_read> -t <task_id>'
+            print "make_report.py -f <foward_read> -r <reverse_read> -t <task_id> -w <workflow>"
             sys.exit()
         elif opt in ("-f",):
 	    filename, file_extension = os.path.splitext(arg)
@@ -37,6 +38,12 @@ def data_collect(argv):
 		reverse_filename = arg.split('/')[-1]
         elif opt in ("-t",):
             task_id=arg
+	elif opt in ("-w",):
+	    if isinstance(arg, dict):
+	    	workflow = arg
+	    elif isinstance(arg, str):
+		workflow = ast.literal_eval(arg)
+		
     base_url = base_url % (task_id)
     logfile = open(mgmic_base_out % (task_id,'report.txt'),'w')
     logfile.write( "%s\n%s\n%s\n" % (forward_filename,reverse_filename,task_id))
