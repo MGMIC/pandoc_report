@@ -4,7 +4,7 @@ from BeautifulSoup import BeautifulSoup
 from subprocess import call
 import pystache as pst
 import sys, getopt, os, glob,shutil,ast
-from mgmic_description import qc_desc,s16_desc,assemble_desc,fgs_desc
+from mgmic_description import qc_desc,qc_desc_off,s16_desc,assemble_desc,fgs_desc
 
 #host_name = "http://192.168.99.100" #local
 host_name="http://mgmic.oscer.ou.edu"
@@ -179,7 +179,7 @@ def quality_control(mgmic_base_out,task_id,forward_filename,reverse_filename,log
             'qc_desc':qc_desc}
     else:
         data ={'forward_scr1':temp_src[0],"forward_scr2":temp_src[1],'reverse_scr1':temp_src[2],"reverse_scr2":temp_src[3],
-                'qc_desc':qc_desc}
+                'qc_desc':qc_desc_off}
 
     return pst.render(template,data)
 
