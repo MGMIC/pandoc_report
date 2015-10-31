@@ -43,11 +43,14 @@ def data_collect(argv):
             task_id=arg
 	elif opt in ("-w",):
             workflow=arg
-		
+	    w_ord = ["qc","s16","assemble","func_gene"]
+   	    workflow = dict(zip(w_ord,workflow.split(',')))	
+    #print workflow
     base_url = base_url % (task_id)
     logfile = open(mgmic_base_out % (task_id,'report.txt'),'w')
     logfile.write( "%s\n%s\n%s\n%s\n" % (forward_filename,reverse_filename,task_id,workflow))
-    md = "#MGMIC Report\n"
+
+    md= open('/usr/src/app/templates/report.tmpl','r').read()
     try: 
         qc_md = quality_control(mgmic_base_out,task_id,forward_filename,reverse_filename,logfile,workflow)
     except Exception as inst:
@@ -81,6 +84,7 @@ def data_collect(argv):
 def s16(base_url):
     data = {'s16_desc':s16_desc,'s16_l1':"%s%s" % (base_url, '16s_classification/community_pie_chart_L1.png'),
             's16_l3':"%s%s" % (base_url, '16s_classification/community_pie_chart_L3.png'),
+	    'iframe_src':"%s%s" % (base_url, '16s_classification/Krona_outsd.html'),
             'qiime-url':"%s%s" % (base_url,'16s_classification/temp/mg_taxplots/taxa_summary_plots/pie_charts.html'),
             'ssu_hits': "%s%s" % (base_url,'16s_classification/ssu_hits_corrected.fasta')
             }

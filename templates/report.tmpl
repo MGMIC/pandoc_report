@@ -1,40 +1,56 @@
 #Metagenomic Analysis
 
-### Quality Control
+###General Info
 
->{{ qc_desc }}
+>The following repositories contain software and code used to generate this report:
 
->#### Foward Read
+>#####Docker
 
-><img src="{{ forward_scr1 }}" width="400" height="300"><img src="{{ qc_forward_scr1 }}" width="400" height="300">  
-> <img src="{{ forward_scr2 }}" width="400" height="300"><img src="{{ qc_foward_scr2 }}" width="400" height="300">  
+><table>
+	<tr>
+    	<th>Docker Container</th>
+    	<th>Description</th>
+  	</tr>
+    <tr>
+        <td>mgmic/qiime_env</td>
+        <td> QIIME Docker for Phylogenetic Analysis</td>
+    </tr>
+     <tr>
+        <td>mgmic/bioinformatics</td>
+        <td> Bioinformatics tools and code</td>
+    </tr>
+     <tr>
+        <td>mgmic/api</td>
+        <td> RESTful API code</td>
+    </tr>
+    <tr>
+        <td>mgmic/report</td>
+        <td> MGMIC report generation.</td>
+    </tr>
+</table>
 
->#### Reverse Read
+>#####GitHub
 
-><img src="{{ reverse_scr1 }}" width="400" height="300"><img src="{{ qc_reverse_scr1 }}" width="400" height="300">  
-><img src="{{ reverse_scr2 }}" width="400" height="300"><img src="{{ qc_reverse_scr2 }}" width="400" height="300">  
-
-### 16S Classification
-
->{{ s16_desc }}
-
->![L1]({{ s16_l1 }}) ![L3]({{ s16_l3 }})
-
->[Qiime Output]({{ qiime-url }})
-
->[SSU_Hits_corrected.fasta]({{ ssu_hits }})
-
-### Assemble
-
->{{ assemble_desc }}
-
->[Fasta_file]({{ assemble_fasta }})
-
-<pre>{{ assemble_statistics }}</pre>
-
-### Funcitonal Gene Search
-
->{{ fgs_desc }}
-
->{{ gene_markdown }}
+><table>
+	<tr>
+    	<th>Repository</th>
+    	<th>Description</th>
+  	</tr>
+    <tr>
+        <td>MGMIC/portal</td>
+        <td> Web portal</td>
+    </tr>
+     <tr>
+        <td>MGMIC/restful-api</td>
+        <td> RESTful API deployment</td>
+    </tr>
+     <tr>
+        <td>MGMIC/mgmicq</td>
+        <td> Queue tasks</td>
+    </tr>
+    <tr>
+        <td>MGMIC/mgmic_worker_scripts</td>
+        <td> Bioinformatics workflow scripts</td>
+    </tr>
+</table>
 
