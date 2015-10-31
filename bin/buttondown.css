@@ -121,7 +121,9 @@ ul li /* Unordered list item */
 
 ol /* Whole ordered list */
     {
+	margin-left: 45px;
     }
+
 
 ol li /* Ordered list item */
     {
@@ -305,7 +307,7 @@ table
     border-top: 2pt solid #000; /* The caption on top will not have a bottom-border */
 
     /* Center */
-    margin-left: auto;
+    margin-left: 50px; /*auto*/
     margin-right: auto;
     }
     
@@ -407,7 +409,6 @@ dd+dd /* 2nd or greater definition of a term */
     {
     border-top: 1px solid black; /* To separate multiple definitions */
     }
-    
 /* ---- Footnotes ---- */
 
 a.footnote, a.footnoteRef { /* Pandoc, MultiMarkdown footnote links */
